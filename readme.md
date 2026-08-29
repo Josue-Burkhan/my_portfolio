@@ -23,3 +23,14 @@ Drizzle ORM, Three.js, React Three Fiber, Drei y Anime.js.
 
 El proyecto contiene únicamente la infraestructura inicial; el contenido y las
 funcionalidades del portafolio se añadirán después.
+
+## Música
+
+El control de música ya está integrado y es accesible. Para activarlo, guarda
+la pista en `public/audio` y configura su ruta pública en `src/config/site.ts`.
+
+## Contenido mock
+
+La identidad básica y los datos provisionales viven en `src/config/site.ts` y
+`src/content/portfolio.ts`. Sustituye esos textos cuando estén listos el correo,
+la experiencia y los proyectos definitivos.
