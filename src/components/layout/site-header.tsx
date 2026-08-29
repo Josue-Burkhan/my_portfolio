@@ -7,7 +7,12 @@ import { MusicControl } from "@/components/ui/music-control";
 import { siteConfig } from "@/config/site";
 import { chapterIds, subscribeExperienceScroll } from "@/lib/experience-scroll";
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  isMusicPlaying: boolean;
+  onToggleMusic: () => void;
+};
+
+export function SiteHeader({ isMusicPlaying, onToggleMusic }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("home");
 
@@ -74,7 +79,9 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <MusicControl
-            src={siteConfig.music.src}
+            configured={Boolean(siteConfig.music.src)}
+            isPlaying={isMusicPlaying}
+            onToggle={onToggleMusic}
             title={siteConfig.music.title}
           />
           <button

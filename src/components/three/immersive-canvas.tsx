@@ -15,6 +15,7 @@ import * as THREE from "three";
 import { getExperienceScroll } from "@/lib/experience-scroll";
 
 type ImmersiveCanvasProps = {
+  modelVisible: boolean;
   onReady: () => void;
 };
 
@@ -38,6 +39,14 @@ const cameraTargets = [
   new THREE.Vector3(5.004, 50.934, -6.698),
 ];
 
+const cameraQuaternions = cameraPositions.map((position, index) => {
+  const poseCamera = new THREE.PerspectiveCamera();
+  poseCamera.position.copy(position);
+  poseCamera.up.set(0, index === 3 ? 0 : 1, index === 3 ? 1 : 0);
+  poseCamera.lookAt(cameraTargets[index]);
+  return poseCamera.quaternion.clone();
+});
+
 const CAMERA_FOV = 40;
 const ASH_COUNT = 14000;
 
@@ -53,9 +62,7 @@ function getFogDensity(progress: number) {
 }
 
 function CameraRig() {
-  const target = useMemo(() => new THREE.Vector3(), []);
   const desiredPosition = useMemo(() => new THREE.Vector3(), []);
-  const desiredTarget = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ camera }) => {
     const scroll = getExperienceScroll();
@@ -78,33 +85,32 @@ function CameraRig() {
       cameraPositions[toIndex],
       segmentProgress,
     );
-    desiredTarget.lerpVectors(
-      cameraTargets[fromIndex],
-      cameraTargets[toIndex],
+    camera.position.copy(desiredPosition);
+    camera.quaternion.slerpQuaternions(
+      cameraQuaternions[fromIndex],
+      cameraQuaternions[toIndex],
       segmentProgress,
     );
-
-    camera.position.copy(desiredPosition);
-    target.copy(desiredTarget);
-
-    camera.lookAt(target);
   });
 
   return null;
 }
 
-function ClaustreModel({ onReady }: ImmersiveCanvasProps) {
+function ClaustreModel({ modelVisible, onReady }: ImmersiveCanvasProps) {
   const { scene } = useGLTF(MODEL_URL);
   const model = useMemo(() => scene.clone(true), [scene]);
   const whiteMaterial = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
         color: "#ffffff",
+        opacity: 0,
         side: THREE.DoubleSide,
         toneMapped: false,
+        transparent: true,
       }),
     [],
   );
+  const materialRef = useRef(whiteMaterial);
 
   useLayoutEffect(() => {
     const bounds = new THREE.Box3().setFromObject(model);
@@ -122,6 +128,15 @@ function ClaustreModel({ onReady }: ImmersiveCanvasProps) {
   }, [model, onReady, whiteMaterial]);
 
   useEffect(() => () => whiteMaterial.dispose(), [whiteMaterial]);
+
+  useFrame((_, delta) => {
+    materialRef.current.opacity = THREE.MathUtils.damp(
+      materialRef.current.opacity,
+      modelVisible ? 1 : 0,
+      4.8,
+      delta,
+    );
+  });
 
   return (
     <group position={[3.5, 0, 0]}>
@@ -273,12 +288,12 @@ function AshStorm() {
   return <points frustumCulled={false} geometry={geometry} material={material} />;
 }
 
-function World({ onReady }: ImmersiveCanvasProps) {
+function World(props: ImmersiveCanvasProps) {
   return (
     <>
       <color attach="background" args={["#000000"]} />
       <Suspense fallback={null}>
-        <ClaustreModel onReady={onReady} />
+        <ClaustreModel {...props} />
       </Suspense>
       <AshStorm />
       <ScrollFog />
@@ -287,7 +302,7 @@ function World({ onReady }: ImmersiveCanvasProps) {
   );
 }
 
-export function ImmersiveCanvas({ onReady }: ImmersiveCanvasProps) {
+export function ImmersiveCanvas(props: ImmersiveCanvasProps) {
   const [dpr, setDpr] = useState(1.25);
 
   return (
@@ -316,7 +331,7 @@ export function ImmersiveCanvas({ onReady }: ImmersiveCanvasProps) {
         onIncline={() => setDpr(1.25)}
       />
       <AdaptiveDpr pixelated />
-      <World onReady={onReady} />
+      <World {...props} />
     </Canvas>
   );
 }

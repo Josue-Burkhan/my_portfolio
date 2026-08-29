@@ -33,7 +33,7 @@ class SceneErrorBoundary extends Component<SceneErrorBoundaryProps> {
   }
 }
 
-export function SceneStage() {
+export function SceneStage({ modelVisible = true }: { modelVisible?: boolean }) {
   const [ready, setReady] = useState(false);
   const [supported, setSupported] = useState(true);
   const { progress } = useProgress();
@@ -58,15 +58,11 @@ export function SceneStage() {
       <div className="scene-stage" aria-hidden="true">
         {supported ? (
           <SceneErrorBoundary onError={() => setSupported(false)}>
-            <ImmersiveCanvas onReady={handleReady} />
+            <ImmersiveCanvas modelVisible={modelVisible} onReady={handleReady} />
           </SceneErrorBoundary>
         ) : null}
 
         <div className="scene-grain" />
-        <div className="scene-caption">
-          <span>{ready ? "Claustre study" : "Loading space"}</span>
-          <span>Scene / 01</span>
-        </div>
       </div>
 
       {supported && !ready ? (

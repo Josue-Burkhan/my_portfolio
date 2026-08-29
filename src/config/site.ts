@@ -12,8 +12,7 @@ export const siteConfig = {
     { label: "Contact", href: "#contact" },
   ],
   music: {
-    // Add the audio file to public/audio and replace null with its public path.
-    src: null as string | null,
+    src: "/audio/home-audio.mp3" as string | null,
     title: "Portfolio ambience",
     chapterVolumes: [0.22, 0.28, 0.34, 0.3, 0.38, 0.46],
   },

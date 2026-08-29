@@ -1,19 +1,25 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, ChevronDown, Plus } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Plus,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { createTimeline, type Timeline } from "animejs";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { SceneStage } from "@/components/three/scene-stage";
+import { AmbientEmbers } from "@/components/ui/ambient-embers";
 import { CursorTextParticles } from "@/components/ui/cursor-text-particles";
 import { siteConfig } from "@/config/site";
 import {
   experience,
   projects,
   skillGroups,
-  techStack,
   type PortfolioProject,
 } from "@/content/portfolio";
 import {
@@ -26,16 +32,124 @@ import {
 
 type ChapterTimeline = {
   inner: HTMLElement;
+  particleTitles: HTMLElement[];
   section: HTMLElement;
   timeline: Timeline;
 };
+
+type EntryPhase = "intro" | "entering" | "entered";
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 export function ImmersivePortfolio() {
   const [selectedProject, setSelectedProject] =
     useState<PortfolioProject | null>(null);
   const [looping, setLooping] = useState(false);
+  const [entryPhase, setEntryPhase] = useState<EntryPhase>("intro");
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioContextRef = useRef<AudioContext>(null);
+  const audioGainRef = useRef<GainNode>(null);
   const loopingRef = useRef(false);
+  const entryTimerRef = useRef<number | null>(null);
   const closeProject = useCallback(() => setSelectedProject(null), []);
+
+  const prepareAudio = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || audioContextRef.current) return;
+
+    const context = new AudioContext();
+    const source = context.createMediaElementSource(audio);
+    const gain = context.createGain();
+    gain.gain.value = siteConfig.music.chapterVolumes[0];
+    source.connect(gain).connect(context.destination);
+    audioContextRef.current = context;
+    audioGainRef.current = gain;
+  }, []);
+
+  const startMusic = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !siteConfig.music.src) return;
+
+    prepareAudio();
+    try {
+      const playRequest = audio.play();
+      const resumeRequest = audioContextRef.current?.resume();
+      await Promise.all([playRequest, resumeRequest]);
+      setIsMusicPlaying(true);
+    } catch {
+      audio.pause();
+      setIsMusicPlaying(false);
+    }
+  }, [prepareAudio]);
+
+  const toggleMusic = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !siteConfig.music.src) return;
+
+    if (!audio.paused) {
+      audio.pause();
+      setIsMusicPlaying(false);
+      return;
+    }
+    void startMusic();
+  }, [startMusic]);
+
+  const enterExperience = useCallback(
+    (withAudio: boolean) => {
+      if (entryPhase !== "intro") return;
+      if (withAudio) void startMusic();
+      setEntryPhase("entering");
+      entryTimerRef.current = window.setTimeout(
+        () => setEntryPhase("entered"),
+        1050,
+      );
+    },
+    [entryPhase, startMusic],
+  );
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (entryPhase !== "entered") {
+      document.body.style.overflow = "hidden";
+      window.scrollTo(0, 0);
+    } else {
+      document.body.style.overflow = previousOverflow;
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [entryPhase]);
+
+  useEffect(
+    () => () => {
+      if (entryTimerRef.current) window.clearTimeout(entryTimerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const unsubscribe = subscribeExperienceScroll((scroll) => {
+      const gain = audioGainRef.current;
+      const context = audioContextRef.current;
+      if (!gain || !context) return;
+      const configuredVolume =
+        siteConfig.music.chapterVolumes[scroll.activeIndex] ?? 0.25;
+      const volume = scroll.visible ? configuredVolume : 0.025;
+      gain.gain.cancelScheduledValues(context.currentTime);
+      gain.gain.setTargetAtTime(volume, context.currentTime, 0.45);
+    });
+
+    return () => {
+      unsubscribe();
+      audio?.pause();
+      void audioContextRef.current?.close();
+    };
+  }, []);
 
   useEffect(() => {
     const stopController = startExperienceScrollController();
@@ -50,6 +164,9 @@ export function ImmersivePortfolio() {
       const elements = section.querySelectorAll<HTMLElement>("[data-reveal]");
       if (!elements.length) return;
       const card = section.querySelector<HTMLElement>("[data-card]");
+      const particleTitles = [
+        ...section.querySelectorAll<HTMLElement>("[data-particle-text]"),
+      ];
 
       const timeline = createTimeline({
         autoplay: false,
@@ -80,7 +197,7 @@ export function ImmersivePortfolio() {
         card ? 110 : 0,
       );
       timeline.seek(0, true);
-      timelines.push({ inner, section, timeline });
+      timelines.push({ inner, particleTitles, section, timeline });
     });
 
     const unsubscribe = subscribeExperienceScroll((scroll) => {
@@ -95,12 +212,12 @@ export function ImmersivePortfolio() {
       );
       document.documentElement.dataset.homeOverlay =
         homeOverlayOpacity <= 0.001 ? "hidden" : "visible";
-      timelines.forEach(({ inner, section, timeline }) => {
+      timelines.forEach(({ inner, particleTitles, section, timeline }) => {
         const viewportHeight = window.innerHeight;
         const distanceFromSet = window.scrollY - section.offsetTop;
         const shouldPin =
           distanceFromSet >= -viewportHeight * 0.37 &&
-          distanceFromSet <= viewportHeight * 0.86;
+          distanceFromSet <= viewportHeight * 0.76;
         let progress: number;
 
         inner.toggleAttribute("data-chapter-pinned", shouldPin);
@@ -112,20 +229,27 @@ export function ImmersivePortfolio() {
               ? 1
               : 0;
         } else if (distanceFromSet < 0) {
-          progress = 1 - Math.min(1, -distanceFromSet / (viewportHeight * 0.34));
+          progress =
+            1 - Math.min(1, -distanceFromSet / (viewportHeight * 0.34));
         } else if (distanceFromSet <= viewportHeight * 0.52) {
           progress = 1;
         } else {
           progress =
             1 -
             Math.min(
-              1,
-              (distanceFromSet - viewportHeight * 0.52) /
-                (viewportHeight * 0.34),
-            );
+                1,
+                (distanceFromSet - viewportHeight * 0.52) /
+                  (viewportHeight * 0.22),
+              );
         }
 
         timeline.seek(timeline.duration * progress, true);
+        particleTitles.forEach((title) => {
+          const ready = progress >= 0.999;
+          if (title.hasAttribute("data-particle-ready") !== ready) {
+            title.toggleAttribute("data-particle-ready", ready);
+          }
+        });
       });
     });
 
@@ -135,6 +259,11 @@ export function ImmersivePortfolio() {
       timelines.forEach(({ timeline }) => timeline.revert());
       timelines.forEach(({ inner }) =>
         inner.removeAttribute("data-chapter-pinned"),
+      );
+      timelines.forEach(({ particleTitles }) =>
+        particleTitles.forEach((title) =>
+          title.removeAttribute("data-particle-ready"),
+        ),
       );
       document.documentElement.classList.remove("experience-enhanced");
       document.documentElement.style.removeProperty("--home-overlay-opacity");
@@ -165,7 +294,8 @@ export function ImmersivePortfolio() {
 
       timers.push(
         window.setTimeout(() => {
-          const previousBehavior = document.documentElement.style.scrollBehavior;
+          const previousBehavior =
+            document.documentElement.style.scrollBehavior;
           document.documentElement.style.scrollBehavior = "auto";
           if (direction === "forward") {
             resetExperienceToStart();
@@ -199,11 +329,162 @@ export function ImmersivePortfolio() {
     };
   }, []);
 
+  useEffect(() => {
+    if (entryPhase !== "entered" || looping) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let lastScrollY = window.scrollY;
+    let direction = 0;
+    let idleTimer = 0;
+    let settleFrame = 0;
+    let settling = false;
+    let previousScrollBehavior = "";
+
+    const cancelSettle = () => {
+      window.clearTimeout(idleTimer);
+      if (!settling) return;
+      window.cancelAnimationFrame(settleFrame);
+      settling = false;
+      document.documentElement.style.scrollBehavior = previousScrollBehavior;
+      lastScrollY = window.scrollY;
+    };
+
+    const settleTo = (targetY: number) => {
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 2) return;
+
+      const duration = clamp(420 + Math.abs(distance) * 0.25, 420, 680);
+      const startTime = performance.now();
+      settling = true;
+      previousScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
+
+      const step = (time: number) => {
+        if (!settling) return;
+        const progress = clamp((time - startTime) / duration, 0, 1);
+        const eased = progress * progress * (3 - 2 * progress);
+        window.scrollTo(0, startY + distance * eased);
+
+        if (progress < 1) {
+          settleFrame = window.requestAnimationFrame(step);
+          return;
+        }
+
+        window.scrollTo(0, targetY);
+        settling = false;
+        lastScrollY = targetY;
+        document.documentElement.style.scrollBehavior = previousScrollBehavior;
+      };
+
+      settleFrame = window.requestAnimationFrame(step);
+    };
+
+    const finishNearbyChapter = () => {
+      if (!direction || settling || loopingRef.current) return;
+      const currentY = window.scrollY;
+      const threshold = window.innerHeight * 0.38;
+      const chapterTops = chapterIds
+        .map((id) => document.getElementById(id)?.offsetTop)
+        .filter((top): top is number => typeof top === "number");
+      let target: number | undefined;
+
+      if (direction > 0) {
+        target = chapterTops.find(
+          (top) => top > currentY + 2 && top - currentY <= threshold,
+        );
+      } else {
+        for (let index = chapterTops.length - 1; index >= 0; index -= 1) {
+          const top = chapterTops[index];
+          if (top < currentY - 2 && currentY - top <= threshold) {
+            target = top;
+            break;
+          }
+        }
+      }
+
+      if (target === undefined) return;
+      if (reducedMotion.matches) {
+        window.scrollTo(0, target);
+        lastScrollY = target;
+        return;
+      }
+      settleTo(target);
+    };
+
+    const handleScroll = () => {
+      if (settling) return;
+      const nextY = window.scrollY;
+      const delta = nextY - lastScrollY;
+      if (Math.abs(delta) > 0.5) direction = Math.sign(delta);
+      lastScrollY = nextY;
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(finishNearbyChapter, 135);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("wheel", cancelSettle, { passive: true });
+    window.addEventListener("touchstart", cancelSettle, { passive: true });
+    window.addEventListener("pointerdown", cancelSettle, { passive: true });
+
+    return () => {
+      cancelSettle();
+      window.clearTimeout(idleTimer);
+      window.cancelAnimationFrame(settleFrame);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", cancelSettle);
+      window.removeEventListener("touchstart", cancelSettle);
+      window.removeEventListener("pointerdown", cancelSettle);
+    };
+  }, [entryPhase, looping]);
+
   return (
-    <div className="immersive-site">
-      <SceneStage />
-      <SiteHeader />
-      <CursorTextParticles />
+    <div className={`immersive-site experience-${entryPhase}`}>
+      <SceneStage modelVisible={entryPhase !== "intro"} />
+      {siteConfig.music.src ? (
+        <audio
+          loop
+          onPause={() => setIsMusicPlaying(false)}
+          onPlaying={() => setIsMusicPlaying(true)}
+          preload="none"
+          ref={audioRef}
+          src={siteConfig.music.src}
+        />
+      ) : null}
+      <section
+        aria-hidden={entryPhase === "entered"}
+        className={`prehome prehome-${entryPhase}`}
+        inert={entryPhase === "entered"}
+      >
+        <AmbientEmbers />
+        <div className="prehome-identity">
+          <p>Creative Dev.</p>
+          <h1>{siteConfig.name}</h1>
+          <span>Design · Code · 3D</span>
+        </div>
+        <div className="prehome-actions">
+          <p>Click to continue</p>
+          <div aria-label="Audio preference" role="group">
+            <button
+              className="prehome-action prehome-action-primary"
+              onClick={() => enterExperience(true)}
+              type="button"
+            >
+              <Volume2 aria-hidden="true" size={17} strokeWidth={1.7} />
+              <span>With audio</span>
+            </button>
+            <button
+              className="prehome-action prehome-action-secondary"
+              onClick={() => enterExperience(false)}
+              type="button"
+            >
+              <VolumeX aria-hidden="true" size={17} strokeWidth={1.7} />
+              <span>Without audio</span>
+            </button>
+          </div>
+        </div>
+      </section>
+      <SiteHeader isMusicPlaying={isMusicPlaying} onToggleMusic={toggleMusic} />
+      <CursorTextParticles enabled={entryPhase === "entered"} />
       <div
         aria-hidden="true"
         className={`loop-reset ${looping ? "loop-reset-active" : ""}`}
@@ -213,10 +494,6 @@ export function ImmersivePortfolio() {
         <section className="chapter chapter-home" data-chapter="home" id="home">
           <div className="site-container chapter-inner">
             <div className="hero-copy">
-              <div className="section-marker mb-10" data-reveal>
-                <span>01</span>
-                <span className="h-px w-14 bg-[var(--line-strong)]" />
-              </div>
               <p className="eyebrow mb-5" data-reveal>
                 Software designer <span>·</span> Full-stack developer
               </p>
@@ -252,39 +529,7 @@ export function ImmersivePortfolio() {
                   <Plus aria-hidden="true" size={18} strokeWidth={1.5} />
                 </a>
               </div>
-              <div
-                className="tech-strip"
-                aria-label="Core technology stack"
-                data-reveal
-              >
-                {techStack.map((technology, index) => (
-                  <span className="flex items-center gap-x-4" key={technology}>
-                    {technology}
-                    {index < techStack.length - 1 ? (
-                      <i aria-hidden="true">/</i>
-                    ) : null}
-                  </span>
-                ))}
-              </div>
             </div>
-
-            <div className="availability" data-reveal>
-              <span className="availability-dot">
-                <i />
-              </span>
-              <p>
-                Available for select projects
-                <span>Let&apos;s build something exceptional.</span>
-              </p>
-            </div>
-            <a
-              className="scroll-cue"
-              href="#about"
-              aria-label="Continue to about"
-            >
-              <span>Scroll to enter</span>
-              <ChevronDown size={17} />
-            </a>
           </div>
         </section>
 
