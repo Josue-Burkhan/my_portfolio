@@ -3,21 +3,23 @@ import type { Metadata } from "next";
 import "@fontsource-variable/cormorant-garamond";
 import "@fontsource-variable/manrope";
 
+import { FirebaseAnalytics } from "@/components/firebase-analytics";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Josue Burkhan — Creative Developer",
+    default: "Josue Burkhan — Software Engineer",
     template: "%s — Josue Burkhan",
   },
   description:
-    "Portfolio of Josue Burkhan, a creative developer building thoughtful digital products, full-stack systems and immersive 3D experiences.",
+    "Josue Burkhan is a software engineer based in Peru, building web platforms, mobile applications and 3D creative tools. Explore Wild Canvas, Wild Fantasy and Tricks & Triggers.",
   keywords: [
     "Josue Burkhan",
-    "creative developer",
+    "software engineer",
     "full-stack developer",
     "Next.js",
-    "Three.js",
+    "Flutter",
+    "C++",
     "portfolio",
   ],
   authors: [{ name: "Josue Burkhan" }],
@@ -40,7 +42,10 @@ export default function RootLayout({
           type="model/gltf-binary"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <FirebaseAnalytics />
+        {children}
+      </body>
     </html>
   );
 }

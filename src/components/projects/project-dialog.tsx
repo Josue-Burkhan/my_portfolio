@@ -75,7 +75,7 @@ export function ProjectDialog({ onClose, project }: ProjectDialogProps) {
         <div className="project-dialog-head">
           <div>
             <p className="dialog-kicker">
-              {project.index} · {project.discipline} · {project.year}
+              {project.index} · {project.discipline} · {project.status}
             </p>
             <h2 id={`project-${project.slug}-title`}>{project.name}</h2>
           </div>
@@ -92,12 +92,25 @@ export function ProjectDialog({ onClose, project }: ProjectDialogProps) {
         <div className="project-dialog-grid">
           <div className="project-dialog-lead">
             <p>{project.description}</p>
-            <button className="dialog-cta" type="button">
-              Explore live project
-              <ArrowUpRight size={18} />
-            </button>
+            {project.url ? (
+              <a
+                className="dialog-cta"
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {project.linkLabel}
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </a>
+            ) : (
+              <p className="dialog-cta">{project.status}</p>
+            )}
           </div>
           <div className="dialog-copy">
+            <section>
+              <span>My role</span>
+              <p>{project.role}</p>
+            </section>
             <section>
               <span>Challenge</span>
               <p>{project.challenge}</p>
@@ -117,10 +130,7 @@ export function ProjectDialog({ onClose, project }: ProjectDialogProps) {
           </div>
         </div>
 
-        <div
-          className="project-gallery"
-          aria-label="Project gallery placeholders"
-        >
+        <div className="project-gallery" aria-label="Project highlights">
           {project.gallery.map((item, index) => (
             <div key={item}>
               <span>0{index + 1}</span>

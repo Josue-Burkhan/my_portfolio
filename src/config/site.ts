@@ -2,7 +2,9 @@ export const siteConfig = {
   name: "Josue Burkhan",
   initials: "JB",
   descriptor: "Design · Code · 3D",
-  email: "hello@josueburkhan.dev",
+  email: "josue-burkhan@gmail.com",
+  linkedin: "https://www.linkedin.com/in/josue-burkhan/",
+  github: "https://github.com/Josue-Burkhan",
   navigation: [
     { label: "Home", href: "#home" },
     { label: "About", href: "#about" },

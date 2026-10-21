@@ -1,59 +1,83 @@
 export const techStack = [
-  "React",
-  "Next.js",
   "TypeScript",
-  "Node.js",
-  "Three.js",
+  "React & Next.js",
+  "Flutter & Dart",
+  "C++ & Kotlin",
+  "Firebase",
   "PostgreSQL",
 ];
 
 export const projects = [
   {
     index: "01",
-    slug: "conquest",
-    name: "Conquest",
-    discipline: "Product design & full-stack",
-    year: "2026",
+    slug: "wild-canvas",
+    url: "https://play.google.com/store/apps/details?id=com.wildfantasy.canvas",
+    linkLabel: "View on Google Play",
+    name: "Wild Canvas",
+    discipline: "2D/3D creative application",
+    status: "In production",
     description:
-      "A strategic platform that turns complex spatial data into clear decisions.",
+      "A creative application for drawing in 2D, shaping 3D models and painting directly on their surfaces.",
     challenge:
-      "Turn a dense operational workflow and large geospatial datasets into an interface that remains immediate and understandable.",
+      "Bring drawing and 3D creation into a cohesive mobile workflow, with responsive tools and control over geometry, brushes and materials.",
     solution:
-      "A modular command surface, deliberate information hierarchy and realtime map interactions that reveal complexity only when it is useful.",
-    technologies: ["Next.js", "PostgreSQL", "MapLibre", "Three.js"],
-    gallery: ["Systems map", "Command center", "Spatial intelligence"],
+      "Built the product independently, combining a Flutter interface with native graphics and geometry tools. Sketch-based modeling, surface painting and undo/redo support a continuous creative workflow.",
+    role: "Sole creator · Product design and development",
+    technologies: ["Flutter", "Dart", "C++", "Kotlin", "Firebase"],
+    gallery: ["2D drawing", "Sketch-based 3D modeling", "Surface painting"],
     accent: "#ff6500",
   },
   {
     index: "02",
-    slug: "nexus-archive",
-    name: "Nexus Archive",
-    discipline: "Creative development",
-    year: "2025",
+    slug: "wild-fantasy",
+    url: "https://wild-fantasy.com/",
+    linkLabel: "Visit Wild Fantasy",
+    name: "Wild Fantasy",
+    discipline: "Full-stack reading platform",
+    status: "In production",
     description:
-      "An editorial digital archive shaped around exploration, motion and memory.",
+      "A platform for readers and authors to explore, publish and support light novels, manga and serialized fiction.",
     challenge:
-      "Make a large cultural collection feel explorable without reducing it to conventional search results and static grids.",
+      "Connect reading and publishing in one product, supporting content discovery, chapter reading, author workflows and monetization.",
     solution:
-      "A spatial index with editorial pathways, responsive typography and transitions that preserve the visitor's sense of place.",
-    technologies: ["React", "TypeScript", "WebGL", "Motion systems"],
-    gallery: ["Archive index", "Editorial pathway", "Object detail"],
+      "Designed and developed the product independently, bringing together responsive reading interfaces, author publishing tools, authentication, database workflows and PayPal tips and subscriptions.",
+    role: "Sole creator · Product design and full-stack development",
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Supabase",
+      "PostgreSQL",
+      "PayPal",
+    ],
+    gallery: [
+      "Reading and discovery",
+      "Author publishing tools",
+      "Tips and subscriptions",
+    ],
     accent: "#91a9ae",
   },
   {
     index: "03",
-    slug: "forma-01",
-    name: "Forma / 01",
-    discipline: "WebGL experience",
-    year: "2025",
+    slug: "tricks-and-triggers",
+    url: null,
+    linkLabel: null,
+    name: "Tricks & Triggers",
+    discipline: "Game development · Team lead",
+    status: "In development",
     description:
-      "A realtime 3D study where type, material and sound respond to the visitor.",
+      "A 2D pixel-art game mixing a chaotic kitchen, conveyor-belt action and shooting mechanics.",
     challenge:
-      "Create an expressive realtime piece that feels alive while remaining performant and understandable on everyday devices.",
+      "Turn an unconventional cooking-and-shooting concept into readable, responsive gameplay while coordinating development across a team.",
     solution:
-      "A compact procedural world driven by input, sound and a restrained material system with adaptive rendering quality.",
-    technologies: ["Three.js", "R3F", "Anime.js", "Web Audio"],
-    gallery: ["Material study", "Reactive type", "Sound field"],
+      "Leading the project and contributing to development alongside other developers. The current C++ build combines a layered interactive lobby, timed rounds, moving dishes, animated characters and shader-driven effects.",
+    role: "Project lead · Collaborative development",
+    technologies: ["C++20", "SDL3 GPU", "CMake", "Shaders", "Python"],
+    gallery: [
+      "Interactive kitchen lobby",
+      "Conveyor-belt gameplay",
+      "Visual effects",
+    ],
     accent: "#e3ad62",
   },
 ];
@@ -62,54 +86,53 @@ export type PortfolioProject = (typeof projects)[number];
 
 export const skillGroups = [
   {
-    title: "Design",
+    title: "Web & mobile",
     items: [
-      "Product strategy",
-      "UI systems",
-      "Creative direction",
-      "Prototyping",
+      "JavaScript · TypeScript · HTML/CSS",
+      "React · Next.js · Vue.js",
+      "Node.js · PHP · WordPress",
+      "Flutter · Dart · Kotlin",
+      "C# · .NET / Blazor",
+      "REST APIs · OAuth · Stripe · PayPal",
     ],
   },
   {
-    title: "Engineering",
+    title: "Systems, graphics & AI",
     items: [
-      "Frontend architecture",
-      "Backend systems",
-      "APIs & data",
-      "Performance",
+      "C++ · Rust · Python",
+      "SDL3 GPU · CMake",
+      "2D/3D drawing & mesh tools",
+      "Shaders & native rendering",
+      "LLM APIs & chatbot integration",
+      "Local-model integration",
     ],
   },
   {
-    title: "Interactive",
+    title: "Data & delivery",
     items: [
-      "Three.js & WebGL",
-      "Motion systems",
-      "3D experiences",
-      "Generative visuals",
+      "PostgreSQL · MySQL · SQLite",
+      "MongoDB · Supabase",
+      "Firebase Auth & cloud storage",
+      "Git · GitHub · Docker",
+      "Vercel · Render · Firebase Hosting",
+      "Testing · Code review · Team leadership",
     ],
   },
 ];
 
 export const experience = [
   {
-    period: "2025 — Now",
-    role: "Independent Creative Developer",
-    company: "Selected collaborations",
+    period: "Ongoing",
+    role: "Independent Developer & Project Lead",
+    company: "Own products · Freelance · Collaborations",
     summary:
-      "Designing and building thoughtful products for teams working across technology and culture.",
+      "Own product delivery from requirements and architecture to implementation and production support. Lead development with other developers on Tricks & Triggers and contribute to collaborations including Honey Dates.",
   },
   {
-    period: "2023 — 2025",
-    role: "Full-stack Developer",
-    company: "Digital product studio",
+    period: "Ended Oct. 2026",
+    role: "Family History Data Entry Specialist",
+    company: "Springboard · Remote · Four months",
     summary:
-      "Led interface engineering and backend integrations for scalable web platforms.",
-  },
-  {
-    period: "2021 — 2023",
-    role: "Frontend Developer",
-    company: "Creative technology practice",
-    summary:
-      "Created responsive websites, motion systems and interactive prototypes for global launches.",
+      "Processed and verified historical records in a remote, English-speaking team, meeting data-quality and production requirements.",
   },
 ];

@@ -15,6 +15,7 @@ import { ProjectDialog } from "@/components/projects/project-dialog";
 import { SceneStage } from "@/components/three/scene-stage";
 import { AmbientEmbers } from "@/components/ui/ambient-embers";
 import { CursorTextParticles } from "@/components/ui/cursor-text-particles";
+import { MusicControl } from "@/components/ui/music-control";
 import { siteConfig } from "@/config/site";
 import {
   experience,
@@ -204,7 +205,7 @@ export function ImmersivePortfolio() {
       document.documentElement.dataset.activeChapter = scroll.activeId;
       const homeOverlayOpacity = Math.max(
         0,
-        1 - window.scrollY / (window.innerHeight * 0.72),
+        1 - window.scrollY / (window.innerHeight * 0.3),
       );
       document.documentElement.style.setProperty(
         "--home-overlay-opacity",
@@ -231,16 +232,26 @@ export function ImmersivePortfolio() {
         } else if (distanceFromSet < 0) {
           progress =
             1 - Math.min(1, -distanceFromSet / (viewportHeight * 0.34));
+        } else if (section.id === "home") {
+          progress =
+            distanceFromSet <= viewportHeight * 0.06
+              ? 1
+              : 1 -
+                Math.min(
+                  1,
+                  (distanceFromSet - viewportHeight * 0.06) /
+                    (viewportHeight * 0.24),
+                );
         } else if (distanceFromSet <= viewportHeight * 0.52) {
           progress = 1;
         } else {
           progress =
             1 -
             Math.min(
-                1,
-                (distanceFromSet - viewportHeight * 0.52) /
-                  (viewportHeight * 0.22),
-              );
+              1,
+              (distanceFromSet - viewportHeight * 0.52) /
+                (viewportHeight * 0.22),
+            );
         }
 
         timeline.seek(timeline.duration * progress, true);
@@ -274,6 +285,8 @@ export function ImmersivePortfolio() {
 
   useEffect(() => {
     const timers: number[] = [];
+    let loopIntent = 0;
+    let intentResetTimer = 0;
     const handleWheel = (event: WheelEvent) => {
       const atTop = window.scrollY <= 3;
       const atBottom =
@@ -285,7 +298,19 @@ export function ImmersivePortfolio() {
           : event.deltaY < 0 && atTop
             ? "backward"
             : null;
-      if (!direction || loopingRef.current) return;
+      if (!direction || loopingRef.current) {
+        loopIntent = 0;
+        window.clearTimeout(intentResetTimer);
+        return;
+      }
+
+      loopIntent += Math.min(80, Math.abs(event.deltaY));
+      window.clearTimeout(intentResetTimer);
+      intentResetTimer = window.setTimeout(() => {
+        loopIntent = 0;
+      }, 520);
+      if (loopIntent < 240) return;
+      loopIntent = 0;
 
       loopingRef.current = true;
       setLooping(true);
@@ -323,6 +348,7 @@ export function ImmersivePortfolio() {
     window.addEventListener("wheel", handleWheel, { passive: true });
     return () => {
       window.removeEventListener("wheel", handleWheel);
+      window.clearTimeout(intentResetTimer);
       timers.forEach(window.clearTimeout);
       document.documentElement.classList.remove("experience-looping");
       delete document.documentElement.dataset.loopDirection;
@@ -458,7 +484,7 @@ export function ImmersivePortfolio() {
         <AmbientEmbers />
         <div className="prehome-identity">
           <p>Creative Dev.</p>
-          <h1>{siteConfig.name}</h1>
+          <h1>{siteConfig.name.toUpperCase()}</h1>
           <span>Design · Code · 3D</span>
         </div>
         <div className="prehome-actions">
@@ -483,7 +509,15 @@ export function ImmersivePortfolio() {
           </div>
         </div>
       </section>
-      <SiteHeader isMusicPlaying={isMusicPlaying} onToggleMusic={toggleMusic} />
+      <SiteHeader />
+      <div className="fixed-music-control">
+        <MusicControl
+          configured={Boolean(siteConfig.music.src)}
+          isPlaying={isMusicPlaying}
+          onToggle={toggleMusic}
+          title={siteConfig.music.title}
+        />
+      </div>
       <CursorTextParticles enabled={entryPhase === "entered"} />
       <div
         aria-hidden="true"
@@ -495,7 +529,7 @@ export function ImmersivePortfolio() {
           <div className="site-container chapter-inner">
             <div className="hero-copy">
               <p className="eyebrow mb-5" data-reveal>
-                Software designer <span>·</span> Full-stack developer
+                Full-stack software engineer <span>·</span> Technical team lead
               </p>
               <h1
                 className="hero-title text-balance"
@@ -511,9 +545,9 @@ export function ImmersivePortfolio() {
                 data-reveal
               />
               <p className="hero-intro" data-reveal>
-                I build expressive web products, reliable backend systems and
-                immersive 3D experiences with a focus on design, performance and
-                thoughtful details.
+                I build web platforms, mobile applications and creative 3D
+                tools, taking products from an idea to production with care for
+                quality, performance and the people using them.
               </p>
               <div className="hero-actions" data-reveal>
                 <a className="button button-primary" href="#projects">
@@ -551,26 +585,29 @@ export function ImmersivePortfolio() {
                 <span>About</span>
               </div>
               <h2 data-particle-text data-reveal>
-                I connect visual thinking with technical precision.
+                I want to understand what happens beneath the interface.
               </h2>
-              <p className="chapter-lead" data-reveal>
-                Building work that feels clear, considered and a little
-                unexpected.
-              </p>
               <div className="chapter-copy" data-reveal>
                 <p>
-                  I&apos;m Josue, a multidisciplinary developer focused on the
-                  space where product design, engineering and interactive media
-                  meet.
+                  I&apos;m Josue. When a tool or an idea catches my attention, I
+                  study how it works and experiment until I can build something
+                  of my own. That curiosity led me into 3D engines, reverse
+                  engineering and AI.
                 </p>
                 <p>
-                  My process moves from systems and strategy to interfaces and
-                  motion, keeping every experience fast, accessible and
-                  maintainable.
+                  I care about how a product feels as much as how it works:
+                  responsive interactions, dependable behavior and details that
+                  hold up in everyday use, whether I am building independently
+                  or working with a team.
+                </p>
+                <p>
+                  I graduated from BYU–Idaho with a Bachelor of Science in
+                  Software Engineering and an Associate of Applied Science in
+                  Software Development.
                 </p>
               </div>
               <p className="location-line" data-reveal>
-                Based in Lima · Working worldwide
+                Based in Arequipa, Peru · Open to remote opportunities
               </p>
             </div>
           </div>
@@ -617,7 +654,7 @@ export function ImmersivePortfolio() {
                     <span className="project-card-body">
                       <strong>{project.name}</strong>
                       <small>
-                        {project.discipline} · {project.year}
+                        {project.discipline} · {project.status}
                       </small>
                       <span>{project.description}</span>
                     </span>
@@ -629,9 +666,6 @@ export function ImmersivePortfolio() {
                   </button>
                 ))}
               </div>
-              <p className="mock-note" data-reveal>
-                Mock case studies · Content ready to replace
-              </p>
             </div>
           </div>
         </section>
@@ -651,10 +685,10 @@ export function ImmersivePortfolio() {
               <div className="chapter-index" data-reveal>
                 <span>04</span>
                 <i />
-                <span>Capabilities</span>
+                <span>Technical skills</span>
               </div>
               <h2 data-particle-text data-reveal>
-                A broad toolkit, organized around outcomes.
+                From web interfaces to native graphics.
               </h2>
               <div className="skill-grid">
                 {skillGroups.map((group) => (
@@ -690,7 +724,7 @@ export function ImmersivePortfolio() {
                 <span>Experience</span>
               </div>
               <h2 data-particle-text data-reveal>
-                A practice built across product, code and motion.
+                Independent work and team experience.
               </h2>
               <div className="experience-list">
                 {experience.map((item) => (
@@ -708,7 +742,10 @@ export function ImmersivePortfolio() {
           </div>
         </section>
 
-        <div className="camera-transition" aria-hidden="true" />
+        <div
+          className="camera-transition camera-transition-contact"
+          aria-hidden="true"
+        />
 
         <section
           className="chapter chapter-contact"
@@ -738,8 +775,25 @@ export function ImmersivePortfolio() {
                 />
               </a>
               <p className="contact-copy" data-reveal>
-                Open to collaborations, digital products and ambitious
-                interactive experiences.
+                Seeking a software engineering role. Also available for select
+                freelance projects and collaborations.
+              </p>
+              <p className="contact-copy" data-reveal>
+                <a
+                  href={siteConfig.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  LinkedIn
+                </a>
+                {" · "}
+                <a
+                  href={siteConfig.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub
+                </a>
               </p>
             </div>
             <footer className="immersive-footer" data-reveal>

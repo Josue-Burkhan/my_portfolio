@@ -295,6 +295,10 @@ button:disabled {
   pointer-events: none;
 }
 
+.camera-transition-contact {
+  height: 58svh;
+}
+
 .chapter-inner {
   position: relative;
   z-index: 1;
@@ -622,6 +626,40 @@ html[data-home-overlay="hidden"] .chapter-home::before {
   transition:
     border-color 180ms ease,
     color 180ms ease;
+}
+
+.fixed-music-control {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 70;
+  color: var(--paper);
+  pointer-events: auto;
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+.fixed-music-control .music-control {
+  --header-ink: var(--paper);
+  border-color: rgb(255 255 255 / 38%);
+  background: rgb(0 0 0 / 24%);
+  color: var(--paper);
+  box-shadow: 0 0 28px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(10px);
+}
+
+.experience-intro .fixed-music-control,
+.experience-entering .fixed-music-control {
+  visibility: hidden;
+  opacity: 0;
+}
+
+@media (max-width: 79.99rem) {
+  .fixed-music-control {
+    top: 1.62rem;
+    right: 5.25rem;
+  }
 }
 
 .music-control[data-configured="true"]:hover {

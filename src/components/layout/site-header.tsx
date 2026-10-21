@@ -3,16 +3,10 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { MusicControl } from "@/components/ui/music-control";
 import { siteConfig } from "@/config/site";
 import { chapterIds, subscribeExperienceScroll } from "@/lib/experience-scroll";
 
-type SiteHeaderProps = {
-  isMusicPlaying: boolean;
-  onToggleMusic: () => void;
-};
-
-export function SiteHeader({ isMusicPlaying, onToggleMusic }: SiteHeaderProps) {
+export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("home");
 
@@ -78,12 +72,6 @@ export function SiteHeader({ isMusicPlaying, onToggleMusic }: SiteHeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <MusicControl
-            configured={Boolean(siteConfig.music.src)}
-            isPlaying={isMusicPlaying}
-            onToggle={onToggleMusic}
-            title={siteConfig.music.title}
-          />
           <button
             aria-controls="mobile-navigation"
             aria-expanded={menuOpen}

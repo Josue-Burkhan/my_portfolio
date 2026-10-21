@@ -111,19 +111,25 @@ export function startExperienceScrollController() {
           const sectionProgress =
             (window.scrollY - chapterTops[index]) /
             Math.max(1, chapterEnd - chapterTops[index]);
+          const departureStart = index === 0 ? 0.06 : 0.52;
+          const departureShare = index === 0 ? 0.28 : 0.06;
           const departureProgress = Math.max(
             0,
-            (sectionProgress - 0.52) / 0.48,
+            (sectionProgress - departureStart) / (1 - departureStart),
           );
-          chapterProgress = index + easeTransition(departureProgress) * 0.06;
+          chapterProgress =
+            index + easeTransition(departureProgress) * departureShare;
           break;
         }
 
         const transitionProgress =
           (window.scrollY - chapterEnd) /
           Math.max(1, nextChapterStart - chapterEnd);
+        const departureShare = index === 0 ? 0.28 : 0.06;
         chapterProgress =
-          index + 0.06 + easeTransition(transitionProgress) * 0.94;
+          index +
+          departureShare +
+          easeTransition(transitionProgress) * (1 - departureShare);
         break;
       }
     }
